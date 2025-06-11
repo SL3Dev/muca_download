@@ -156,17 +156,10 @@ def iniciar_download():
                 video_stream = video_streams.filter(res=resolucao).first()
             else:
                 video_stream = video_streams.get_highest_resolution()
-            audio_stream = yt.streams.get_audio_only()
             video_path = destino / f"{yt.video_id}_video.{formato.lower()}"
-            audio_path = destino / f"{yt.video_id}_audio.{formato.lower()}"
             output_path = destino / f"{slugify(yt.title)}.{formato.lower()}"
             video_stream.download(output_path=destino, filename=video_path.name)
-            audio_stream.download(output_path=destino, filename=audio_path.name)
-            ffmpeg_exe = encontrar_ffmpeg()
-            comando = [ffmpeg_exe, "-y", "-i", str(video_path), "-i", str(audio_path), "-c:v", "copy", "-c:a", "aac", str(output_path)]
-            subprocess.run(comando)
-            os.remove(video_path)
-            os.remove(audio_path)
+            os.rename(video_path, output_path)
             salvar_no_historico(yt.title, url, data_atual, "Vídeo", output_path)
         
         label_resultado.configure(text=f"Download concluído: {yt.title}")
@@ -200,8 +193,8 @@ formato_var = ctk.StringVar(value="MP4")
 formato_menu = ctk.CTkOptionMenu(frame_opcoes, variable=formato_var, values=["MP4", "AVI"])
 formato_menu.pack(side='left', padx=10)
 
-resolucao_var = ctk.StringVar(value="")
-resolucao_menu = ctk.CTkOptionMenu(frame_opcoes, variable=resolucao_var, values=["", "144p", "360p", "720p", "1080p"])
+resolucao_var = ctk.StringVar(value="Selecione a resolução")
+resolucao_menu = ctk.CTkOptionMenu(frame_opcoes, variable=resolucao_var, values=["Selecione a resolução", "144p", "360p", "720p", "1080p"])
 resolucao_menu.pack(side='left', padx=10)
 
 # Frame de ações
